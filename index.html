@@ -5,14 +5,37 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>データ表示</title>
     <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        h1 {
+            text-align: center;
+            margin: 20px;
+        }
+        #filter-container {
+            margin: 20px;
+            text-align: center;
+        }
+        .filter-input {
+            padding: 8px;
+            width: 90%;
+            max-width: 300px;
+            margin: 5px 0;
+        }
         table {
             width: 100%;
             border-collapse: collapse;
+            overflow-x: auto;
+            display: block;
+            margin: 0 auto;
         }
         th, td {
             border: 1px solid #ddd;
             padding: 8px;
             text-align: left;
+            white-space: nowrap; /* 内容が改行されないようにする */
         }
         th {
             background-color: #f2f2f2;
@@ -24,13 +47,17 @@
         a:hover {
             text-decoration: underline;
         }
-        #filter-container {
-            margin-bottom: 20px;
-        }
-        .filter-input {
-            padding: 8px;
-            width: 200px;
-            margin-right: 10px;
+
+        /* レスポンシブデザイン */
+        @media (max-width: 600px) {
+            th, td {
+                font-size: 14px;
+                padding: 6px;
+            }
+            .filter-input {
+                width: 100%;
+                max-width: none;
+            }
         }
     </style>
 </head>
@@ -42,21 +69,23 @@
         <label for="address-filter">住所で検索:</label>
         <input type="text" id="address-filter" class="filter-input" placeholder="住所を入力">
     </div>
-    <table id="data-table">
-        <thead>
-            <tr>
-                <th>No</th>
-                <th>分野</th>
-                <th>氏名</th>
-                <th>会社名</th>
-                <th>住所</th>
-                <th>TEL</th>
-                <th>アドレス</th>
-                <th>HP</th>
-            </tr>
-        </thead>
-        <tbody></tbody>
-    </table>
+    <div style="overflow-x: auto;">
+        <table id="data-table">
+            <thead>
+                <tr>
+                    <th>No</th>
+                    <th>分野</th>
+                    <th>氏名</th>
+                    <th>会社名</th>
+                    <th>住所</th>
+                    <th>TEL</th>
+                    <th>アドレス</th>
+                    <th>HP</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const fieldFilterInput = document.getElementById('field-filter');
@@ -67,34 +96,30 @@
             // データをフェッチしてテーブルに追加
             const fetchData = async (url) => {
                 try {
-                    // キャッシュバスターのためにURLにクエリパラメータを追加
                     const cacheBusterUrl = `${url}?t=${new Date().getTime()}`;
                     const response = await fetch(cacheBusterUrl);
                     if (!response.ok) {
                         throw new Error('ネットワーク応答に問題があります: ' + response.statusText);
                     }
                     const data = await response.text();
-                    const rows = data.trim().split('\n').slice(1); // ヘッダーを除外し、空白をトリム
-                    const newRows = rows.filter(row => row.trim() !== ''); // 空行をフィルタリング
+                    const rows = data.trim().split('\n').slice(1);
+                    const newRows = rows.filter(row => row.trim() !== '');
 
-                    // データを更新
                     dataRows = newRows;
 
-                    // テーブルのボディを完全にクリア
                     tableBody.innerHTML = '';
 
-                    // テーブルに行を追加する関数
                     const renderTableRows = (rows) => {
                         rows.forEach(row => {
                             const cells = row.split(',');
                             const tr = document.createElement('tr');
                             cells.forEach((cell, index) => {
                                 const td = document.createElement('td');
-                                if (index === 7 && cell.trim()) { // 「HP」の列が存在する場合
+                                if (index === 7 && cell.trim()) {
                                     const a = document.createElement('a');
                                     a.href = cell;
-                                    a.textContent = 'HP'; // リンクテキストを「HP」に設定
-                                    a.target = '_blank'; // 新しいタブで開く
+                                    a.textContent = 'HP';
+                                    a.target = '_blank';
                                     td.appendChild(a);
                                 } else {
                                     td.textContent = cell;
@@ -105,24 +130,20 @@
                         });
                     };
 
-                    // 初期データ表示
                     renderTableRows(dataRows);
 
-                    // フィルタリング機能の追加
                     const filterTable = () => {
                         const fieldFilterValue = fieldFilterInput.value.toLowerCase();
                         const addressFilterValue = addressFilterInput.value.toLowerCase();
                         const filteredRows = dataRows.filter(row => {
                             const cells = row.split(',');
-                            return cells[1].toLowerCase().includes(fieldFilterValue) && // 「分野」の列でフィルタリング
-                                   cells[4].toLowerCase().includes(addressFilterValue); // 「住所」の列でフィルタリング
+                            return cells[1].toLowerCase().includes(fieldFilterValue) &&
+                                   cells[4].toLowerCase().includes(addressFilterValue);
                         });
-                        // フィルタリング後のデータ表示
-                        tableBody.innerHTML = ''; // 現在のテーブルボディをクリア
+                        tableBody.innerHTML = '';
                         renderTableRows(filteredRows);
                     };
 
-                    // フィルターボックスの入力イベントリスナーを追加
                     fieldFilterInput.addEventListener('input', filterTable);
                     addressFilterInput.addEventListener('input', filterTable);
 
@@ -131,8 +152,7 @@
                 }
             };
 
-            // データをフェッチするためのURL
-            const dataUrl = 'data.csv'; // 適切なURLに変更
+            const dataUrl = 'data.csv';
             fetchData(dataUrl);
         });
     </script>
