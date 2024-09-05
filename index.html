@@ -74,23 +74,23 @@
             <thead>
                 <tr>
                     <th>No</th>
+                    <th>LitLink</th>
                     <th>分野</th>
                     <th>氏名</th>
                     <th>会社名</th>
                     <th>住所</th>
-                    <th>TEL</th>
-                    <th>アドレス</th>
-                    <th>HP</th>
                 </tr>
             </thead>
             <tbody></tbody>
         </table>
     </div>
+    <div id="error-message" class="error-message"></div>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const fieldFilterInput = document.getElementById('field-filter');
             const addressFilterInput = document.getElementById('address-filter');
             const tableBody = document.querySelector('#data-table tbody');
+            const errorMessageDiv = document.getElementById('error-message');
             let dataRows = [];
 
             // データをフェッチしてテーブルに追加
@@ -102,53 +102,60 @@
                         throw new Error('ネットワーク応答に問題があります: ' + response.statusText);
                     }
                     const data = await response.text();
-                    const rows = data.trim().split('\n').slice(1);
-                    const newRows = rows.filter(row => row.trim() !== '');
 
-                    dataRows = newRows;
+                    Papa.parse(data, {
+                        header: true,
+                        skipEmptyLines: true,
+                        complete: (results) => {
+                            dataRows = results.data.filter(row => row['掲載'] === 'OK');
 
-                    tableBody.innerHTML = '';
+                            tableBody.innerHTML = '';
 
-                    const renderTableRows = (rows) => {
-                        rows.forEach(row => {
-                            const cells = row.split(',');
-                            const tr = document.createElement('tr');
-                            cells.forEach((cell, index) => {
-                                const td = document.createElement('td');
-                                if (index === 7 && cell.trim()) {
-                                    const a = document.createElement('a');
-                                    a.href = cell;
-                                    a.textContent = 'HP';
-                                    a.target = '_blank';
-                                    td.appendChild(a);
-                                } else {
-                                    td.textContent = cell;
-                                }
-                                tr.appendChild(td);
-                            });
-                            tableBody.appendChild(tr);
-                        });
-                    };
+                            const renderTableRows = (rows) => {
+                                rows.forEach(row => {
+                                    const tr = document.createElement('tr');
+                                    // 各セルの内容をテーブルに追加
+                                    Object.keys(row).forEach((key, index) => {
+                                        if (key === '掲載') return; // "掲載" 列は表示しない
+                                        const td = document.createElement('td');
+                                        if (key === 'LitLink' && row[key].trim()) {
+                                            const a = document.createElement('a');
+                                            a.href = row[key];
+                                            a.textContent = 'リンク';
+                                            a.target = '_blank';
+                                            td.appendChild(a);
+                                        } else {
+                                            td.textContent = row[key];
+                                        }
+                                        tr.appendChild(td);
+                                    });
+                                    tableBody.appendChild(tr);
+                                });
+                            };
 
-                    renderTableRows(dataRows);
+                            renderTableRows(dataRows);
 
-                    const filterTable = () => {
-                        const fieldFilterValue = fieldFilterInput.value.toLowerCase();
-                        const addressFilterValue = addressFilterInput.value.toLowerCase();
-                        const filteredRows = dataRows.filter(row => {
-                            const cells = row.split(',');
-                            return cells[1].toLowerCase().includes(fieldFilterValue) &&
-                                   cells[4].toLowerCase().includes(addressFilterValue);
-                        });
-                        tableBody.innerHTML = '';
-                        renderTableRows(filteredRows);
-                    };
+                            const filterTable = () => {
+                                const fieldFilterValue = fieldFilterInput.value.toLowerCase();
+                                const addressFilterValue = addressFilterInput.value.toLowerCase();
+                                const filteredRows = dataRows.filter(row => {
+                                    return row['分野'] && row['分野'].toLowerCase().includes(fieldFilterValue) &&
+                                           row['住所'] && row['住所'].toLowerCase().includes(addressFilterValue);
+                                });
+                                tableBody.innerHTML = '';
+                                renderTableRows(filteredRows);
+                            };
 
-                    fieldFilterInput.addEventListener('input', filterTable);
-                    addressFilterInput.addEventListener('input', filterTable);
+                            fieldFilterInput.addEventListener('input', filterTable);
+                            addressFilterInput.addEventListener('input', filterTable);
+                        },
+                        error: (error) => {
+                            errorMessageDiv.textContent = 'データのパースに失敗しました: ' + error.message;
+                        }
+                    });
 
                 } catch (error) {
-                    console.error('データの取得に失敗しました:', error);
+                    errorMessageDiv.textContent = 'データの取得に失敗しました: ' + error.message;
                 }
             };
 
@@ -156,5 +163,6 @@
             fetchData(dataUrl);
         });
     </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
 </body>
 </html>
