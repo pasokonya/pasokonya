@@ -68,6 +68,7 @@
         <input type="text" id="field-filter" class="filter-input" placeholder="分野を入力">
         <label for="address-filter">住所で検索:</label>
         <input type="text" id="address-filter" class="filter-input" placeholder="住所を入力">
+        <button id="clear-filters" style="margin-top: 10px;">フィルタをクリア</button>
     </div>
     <div style="overflow-x: auto;">
         <table id="data-table">
@@ -96,8 +97,9 @@
             // データをフェッチしてテーブルに追加
             const fetchData = async (url) => {
                 try {
+                    // キャッシュバスターとキャッシュ制御オプションを追加
                     const cacheBusterUrl = `${url}?t=${new Date().getTime()}`;
-                    const response = await fetch(cacheBusterUrl);
+                    const response = await fetch(cacheBusterUrl, { cache: "no-store" });
                     if (!response.ok) {
                         throw new Error('ネットワーク応答に問題があります: ' + response.statusText);
                     }
@@ -108,46 +110,7 @@
                         skipEmptyLines: true,
                         complete: (results) => {
                             dataRows = results.data.filter(row => row['掲載'] === 'OK');
-
-                            tableBody.innerHTML = '';
-
-                            const renderTableRows = (rows) => {
-                                rows.forEach(row => {
-                                    const tr = document.createElement('tr');
-                                    // 各セルの内容をテーブルに追加
-                                    Object.keys(row).forEach((key, index) => {
-                                        if (key === '掲載') return; // "掲載" 列は表示しない
-                                        const td = document.createElement('td');
-                                        if (key === 'LitLink' && row[key].trim()) {
-                                            const a = document.createElement('a');
-                                            a.href = row[key];
-                                            a.textContent = 'リンク';
-                                            a.target = '_blank';
-                                            td.appendChild(a);
-                                        } else {
-                                            td.textContent = row[key];
-                                        }
-                                        tr.appendChild(td);
-                                    });
-                                    tableBody.appendChild(tr);
-                                });
-                            };
-
-                            renderTableRows(dataRows);
-
-                            const filterTable = () => {
-                                const fieldFilterValue = fieldFilterInput.value.toLowerCase();
-                                const addressFilterValue = addressFilterInput.value.toLowerCase();
-                                const filteredRows = dataRows.filter(row => {
-                                    return row['分野'] && row['分野'].toLowerCase().includes(fieldFilterValue) &&
-                                           row['住所'] && row['住所'].toLowerCase().includes(addressFilterValue);
-                                });
-                                tableBody.innerHTML = '';
-                                renderTableRows(filteredRows);
-                            };
-
-                            fieldFilterInput.addEventListener('input', filterTable);
-                            addressFilterInput.addEventListener('input', filterTable);
+                            renderTableRows(dataRows); // 初回データ表示
                         },
                         error: (error) => {
                             errorMessageDiv.textContent = 'データのパースに失敗しました: ' + error.message;
@@ -158,6 +121,49 @@
                     errorMessageDiv.textContent = 'データの取得に失敗しました: ' + error.message;
                 }
             };
+
+            const renderTableRows = (rows) => {
+                tableBody.innerHTML = ''; // テーブルの内容をリセット
+                rows.forEach(row => {
+                    const tr = document.createElement('tr');
+                    Object.keys(row).forEach((key) => {
+                        if (key === '掲載') return; // "掲載" 列は表示しない
+                        const td = document.createElement('td');
+                        if (key === 'LitLink' && row[key].trim()) {
+                            const a = document.createElement('a');
+                            a.href = row[key];
+                            a.textContent = 'リンク';
+                            a.target = '_blank';
+                            td.appendChild(a);
+                        } else {
+                            td.textContent = row[key];
+                        }
+                        tr.appendChild(td);
+                    });
+                    tableBody.appendChild(tr);
+                });
+            };
+
+            const filterTable = () => {
+                const fieldFilterValue = fieldFilterInput.value.toLowerCase();
+                const addressFilterValue = addressFilterInput.value.toLowerCase();
+                const filteredRows = dataRows.filter(row => {
+                    return row['分野'] && row['分野'].toLowerCase().includes(fieldFilterValue) &&
+                           row['住所'] && row['住所'].toLowerCase().includes(addressFilterValue);
+                });
+                renderTableRows(filteredRows);
+            };
+
+            fieldFilterInput.addEventListener('input', filterTable);
+            addressFilterInput.addEventListener('input', filterTable);
+
+            // フィルタクリアボタンのイベントリスナーを追加
+            document.getElementById('clear-filters').addEventListener('click', () => {
+                fieldFilterInput.value = '';
+                addressFilterInput.value = '';
+                // フィルタリングを解除して全データを再表示
+                renderTableRows(dataRows);
+            });
 
             const dataUrl = 'data.csv';
             fetchData(dataUrl);
