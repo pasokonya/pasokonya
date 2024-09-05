@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>データ表示</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        a {
+            color: blue;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        #filter-container {
+            margin-bottom: 20px;
+        }
+        .filter-input {
+            padding: 8px;
+            width: 200px;
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>データ一覧</h1>
+    <div id="filter-container">
+        <label for="field-filter">分野で検索:</label>
+        <input type="text" id="field-filter" class="filter-input" placeholder="分野を入力">
+        <label for="address-filter">住所で検索:</label>
+        <input type="text" id="address-filter" class="filter-input" placeholder="住所を入力">
+    </div>
+    <table id="data-table">
+        <thead>
+            <tr>
+                <th>No</th>
+                <th>分野</th>
+                <th>氏名</th>
+                <th>会社名</th>
+                <th>住所</th>
+                <th>TEL</th>
+                <th>アドレス</th>
+                <th>HP</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const fieldFilterInput = document.getElementById('field-filter');
+            const addressFilterInput = document.getElementById('address-filter');
+            const tableBody = document.querySelector('#data-table tbody');
+            let dataRows = [];
+
+            // データをフェッチしてテーブルに追加
+            const fetchData = async (url) => {
+                try {
+                    const response = await fetch(url);
+                    if (!response.ok) {
+                        throw new Error('ネットワーク応答に問題があります: ' + response.statusText);
+                    }
+                    const data = await response.text();
+                    const rows = data.trim().split('\n').slice(1); // ヘッダーを除外し、空白をトリム
+                    const newRows = rows.filter(row => row.trim() !== ''); // 空行をフィルタリング
+
+                    // データを更新
+                    dataRows = newRows;
+
+                    // テーブルのボディを完全にクリア
+                    tableBody.innerHTML = '';
+
+                    // テーブルに行を追加する関数
+                    const renderTableRows = (rows) => {
+                        rows.forEach(row => {
+                            const cells = row.split(',');
+                            const tr = document.createElement('tr');
+                            cells.forEach((cell, index) => {
+                                const td = document.createElement('td');
+                                if (index === 7 && cell.trim()) { // 「HP」の列が存在する場合
+                                    const a = document.createElement('a');
+                                    a.href = cell;
+                                    a.textContent = 'HP'; // リンクテキストを「HP」に設定
+                                    a.target = '_blank'; // 新しいタブで開く
+                                    td.appendChild(a);
+                                } else {
+                                    td.textContent = cell;
+                                }
+                                tr.appendChild(td);
+                            });
+                            tableBody.appendChild(tr);
+                        });
+                    };
+
+                    // 初期データ表示
+                    renderTableRows(dataRows);
+
+                    // フィルタリング機能の追加
+                    const filterTable = () => {
+                        const fieldFilterValue = fieldFilterInput.value.toLowerCase();
+                        const addressFilterValue = addressFilterInput.value.toLowerCase();
+                        const filteredRows = dataRows.filter(row => {
+                            const cells = row.split(',');
+                            return cells[1].toLowerCase().includes(fieldFilterValue) && // 「分野」の列でフィルタリング
+                                   cells[4].toLowerCase().includes(addressFilterValue); // 「住所」の列でフィルタリング
+                        });
+                        // フィルタリング後のデータ表示
+                        tableBody.innerHTML = ''; // 現在のテーブルボディをクリア
+                        renderTableRows(filteredRows);
+                    };
+
+                    // フィルターボックスの入力イベントリスナーを追加
+                    fieldFilterInput.addEventListener('input', filterTable);
+                    addressFilterInput.addEventListener('input', filterTable);
+
+                } catch (error) {
+                    console.error('データの取得に失敗しました:', error);
+                }
+            };
+
+            // データをフェッチするためのURL
+            const dataUrl = 'data.csv'; // 適切なURLに変更
+            fetchData(dataUrl);
+        });
+    </script>
+</body>
+</html>
