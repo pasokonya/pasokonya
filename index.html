@@ -67,7 +67,9 @@
             // データをフェッチしてテーブルに追加
             const fetchData = async (url) => {
                 try {
-                    const response = await fetch(url);
+                    // キャッシュバスターのためにURLにクエリパラメータを追加
+                    const cacheBusterUrl = `${url}?t=${new Date().getTime()}`;
+                    const response = await fetch(cacheBusterUrl);
                     if (!response.ok) {
                         throw new Error('ネットワーク応答に問題があります: ' + response.statusText);
                     }
