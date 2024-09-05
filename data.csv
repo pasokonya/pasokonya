@@ -1,14 +1,14 @@
 ﻿掲載,No,LitLink,分野,氏名,会社名,住所
 OK,1,https://lit.link/pasokonya,IT,川口 淳,パソコンや,神奈川
-NG,2,https://lit.link/pasokonya,飲食,山田太郎B,会社B,千葉
-NG,3,https://lit.link/pasokonya,電気,山田太郎C,会社C,東京
+OK,2,https://lit.link/pasokonya,飲食,山田太郎B,会社B,千葉
+OK,3,https://lit.link/pasokonya,電気,山田太郎C,会社C,東京
 OK,4,https://lit.link/pasokonya,IT,山田太郎D,会社D,神奈川
 OK,5,https://lit.link/pasokonya,飲食,山田太郎E,会社E,東京
 OK,6,https://lit.link/pasokonya,サービス,山田太郎F,会社F,大阪
 OK,7,https://lit.link/pasokonya,建築,山田太郎G,会社G,名古屋
 OK,8,https://lit.link/pasokonya,法務,山田太郎H,会社H,沖縄
-NG,9,https://lit.link/pasokonya,教育,山田太郎I,会社I,北海道
-NG,10,https://lit.link/pasokonya,IT,山田太郎J,会社J,神奈川
+OK,9,https://lit.link/pasokonya,教育,山田太郎I,会社I,北海道
+OK,10,https://lit.link/pasokonya,IT,山田太郎J,会社J,神奈川
 OK,11,https://lit.link/pasokonya,飲食,山田太郎K,会社K,東京
 OK,12,https://lit.link/pasokonya,教育,山田太郎L,会社L,群馬
 OK,13,https://lit.link/pasokonya,電気,山田太郎M,会社M,埼玉
