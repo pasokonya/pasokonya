@@ -1,6 +1,6 @@
 ﻿掲載,No,LitLink,分野,氏名,会社名,住所
 OK,1,https://lit.link/pasokonya,IT,川口 淳,パソコンや,神奈川
-OK,2,https://lit.link/pasokonya,飲食,山田太郎B,会社B,千葉
+NG,2,https://lit.link/pasokonya,飲食,山田太郎B,会社B,千葉
 OK,3,https://lit.link/pasokonya,電気,山田太郎C,会社C,東京
 OK,4,https://lit.link/pasokonya,IT,山田太郎D,会社D,神奈川
 OK,5,https://lit.link/pasokonya,飲食,山田太郎E,会社E,東京
